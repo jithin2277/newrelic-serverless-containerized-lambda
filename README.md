@@ -27,26 +27,21 @@ Containerized AWS Lambda (Node.js / TypeScript) with **New Relic** instrumentati
 |---|---|
 | Node.js | ≥ 22 |
 | Docker | Latest |
-| Serverless Framework | ~4 |
+| Serverless Framework | ~4 (needs serverless license key to deploy but should work with serverless v3 as well which is free, I kept it v4 since it is what we use in our org) |
 | AWS CLI | v2 |
 
-## Local Development
+## Deployment
 
 ```bash
 # Install dependencies
 npm install
 
+# Build the repo 
+npm run build
+
 # Copy and update the environment variables
 cp .env.sample .env.dev
 
-# Run locally via serverless-offline (dev stage, uses .env.dev)
-npm run start
-
-```
-
-## Deployment
-
-```bash
 # Deploy to AWS
 npm run deploy
 ```

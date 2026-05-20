@@ -5,7 +5,6 @@
   "main": "src/handler.ts",
   "scripts": {
     "build": "tsc",
-    "start": "tsc && IS_OFFLINE=true sls offline --stage=dev --reloadHandler",
     "deploy": "BUILDX_NO_DEFAULT_ATTESTATIONS=1 tsc && BUILDX_NO_DEFAULT_ATTESTATIONS=1 sls deploy --stage=dev",
     "lint": "eslint src/",
     "test": "echo \"No tests configured yet\" && exit 0"
