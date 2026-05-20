@@ -1,0 +1,122 @@
+name: "Cloud | Build & Deploy API"
+
+on:
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+      LOG_LEVEL:
+        required: true
+        type: string
+      APP:
+        required: true
+        type: string
+      NODE_ENV:
+        required: true
+        type: string
+      BASE_URL:
+        required: true
+        type: string
+      FROM_EMAIL:
+        required: true
+        type: string
+      AUTH_TOKEN_EXPIRES:
+        required: true
+        type: string
+      REFRESH_TOKEN_EXPIRES:
+        required: true
+        type: string
+      INVITATION_EXPIRES:
+        required: true
+        type: number
+      RESET_PASSWORD_LINK_EXPIRES:
+        required: true
+        type: number
+      HP_SUPPORT_EMAIL:
+        required: false
+        type: string
+      API_URL:
+        required: true
+        type: string
+    secrets:
+      SERVERLESS_LICENSE_KEY:
+        required: true
+
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+  BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+
+jobs:
+  deploy:
+    name: Deploy API
+    runs-on: ubuntu-latest
+    environment: ${{inputs.env}}
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: ./.github/actions/restore-node-modules-cache
+        name: Restore node modules cache
+      - uses: ./.github/actions/restore-shared-build-cache
+        name: Restore shared build cache
+      - uses: ./.github/actions/restore-orm-build-cache
+        name: Restore ORM build cache
+
+      - name: Set Environment Variables (${{inputs.env}})
+        run: |
+          echo 'STAGE=${{inputs.env}}' >> $GITHUB_ENV
+
+      - name: Create .env.${{inputs.env}} file
+        working-directory: packages/cloud
+        run: |
+          echo 'LOG_LEVEL=${{inputs.LOG_LEVEL}}' >> .env.${{inputs.env}}
+          echo 'APP=${{inputs.APP}}' >> .env.${{inputs.env}}
+          echo 'NODE_ENV=${{inputs.NODE_ENV}}' >> .env.${{inputs.env}}
+          echo 'BASE_URL=${{inputs.BASE_URL}}' >> .env.${{inputs.env}}
+          echo 'FROM_EMAIL=${{inputs.FROM_EMAIL}}' >> .env.${{inputs.env}}
+          echo 'AUTH_TOKEN_EXPIRES=${{inputs.AUTH_TOKEN_EXPIRES}}' >> .env.${{inputs.env}}
+          echo 'REFRESH_TOKEN_EXPIRES=${{inputs.REFRESH_TOKEN_EXPIRES}}' >> .env.${{inputs.env}}
+          echo 'INVITATION_EXPIRES=${{inputs.INVITATION_EXPIRES}}' >> .env.${{inputs.env}}
+          echo 'RESET_PASSWORD_LINK_EXPIRES=${{inputs.RESET_PASSWORD_LINK_EXPIRES}}' >> .env.${{inputs.env}}
+          echo 'HP_SUPPORT_EMAIL=${{inputs.HP_SUPPORT_EMAIL}}' >> .env.${{inputs.env}}
+          echo 'STAGE=${{inputs.env}}' >> .env.${{inputs.env}}
+          echo 'API_URL=${{inputs.API_URL}}' >> .env.${{inputs.env}}
+
+      - name: Configure AWS credentials for CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE }}
+          aws-region: ap-southeast-2
+
+      - name: Check Secrets for empty key values
+        run: |
+          # Define a list of secrets to check
+          declare -a secrets=("hp-rds-proxy-app-secret-${{inputs.env}}" "hp-hw-integration-secrets-${{inputs.env}}" "nswses-gis-secrets-${{inputs.env}}" "dnaesa-gis-secrets-${{inputs.env}}" "hp-auth-token-secrets-${{inputs.env}}" "hp-ayrshare-api-secrets-${{inputs.env}}" "hp-slack-hook-url-secrets-${{inputs.env}}" "hp-cloud-hmac-key-${{inputs.env}}" "nswrfs-incidents-secrets-${{inputs.env}}")
+
+          # Loop through the secrets array
+          for secret_id in "${secrets[@]}"
+          do
+            # Fetch the secret's key-value pairs as JSON
+            secrets_keys=$(aws secretsmanager get-secret-value --secret-id "$secret_id" --query SecretString --output text | jq -r 'to_entries[] | select(.value == null or .value == "") | .key')
+
+            # Check if any keys are empty
+            if [ ! -z "$secrets_keys" ]; then
+              echo "Empty keys found in the secret $secret_id:"$'\n'"$secrets_keys"
+              exit 1
+            fi
+          done
+          echo "All specified secrets have valid values."
+
+      - name: Deploy
+        working-directory: packages/cloud
+        run: |
+          export SERVERLESS_LICENSE_KEY=${{ secrets.SERVERLESS_LICENSE_KEY }}
+          npx serverless deploy --stage $STAGE

@@ -1,0 +1,22 @@
+{
+  "name": "newrelic-serverless-containerized-lambda",
+  "version": "1.0.0",
+  "description": "Containerized AWS Lambda with New Relic instrumentation deployed via Serverless Framework v4",
+  "main": "src/handler.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src/",
+    "test": "echo \"No tests configured yet\" && exit 0"
+  },
+  "dependencies": {
+    "newrelic": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
