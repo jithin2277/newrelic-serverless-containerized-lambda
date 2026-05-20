@@ -36,25 +36,19 @@ Containerized AWS Lambda (Node.js / TypeScript) with **New Relic** instrumentati
 # Install dependencies
 npm install
 
-# Copy and fill in environment variables
+# Copy and update the environment variables
 cp .env.sample .env.dev
 
-# Run locally via serverless-offline (local stage)
+# Run locally via serverless-offline (dev stage, uses .env.dev)
 npm run start
 
-# Run locally via serverless-offline (dev stage, uses .env.dev)
-npm run start:dev
-
-# Test the Docker image locally (New Relic disabled)
-npm run invoke:docker
-# Then invoke: curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
 ```
 
 ## Deployment
 
 ```bash
-# Deploy to dev
-npm run deploy:dev
+# Deploy to AWS
+npm run deploy
 ```
 
 ## Environment Variables
