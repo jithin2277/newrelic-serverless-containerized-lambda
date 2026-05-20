@@ -26,15 +26,18 @@ provider:
 
   environment:
     STAGE: ${sls:stage}
-    LOG_LEVEL: ${env:LOG_LEVEL, "info"}
+    LOG_LEVEL: ${env:LOG_LEVEL, "INFO"}
 
     # New Relic environment variables
-    NEW_RELIC_APP_NAME: newrelic-serverless-lambda-${sls:stage}
-    NEW_RELIC_LAMBDA_HANDLER: dist/handler.handler
     NEW_RELIC_ACCOUNT_ID: ${env:NEW_RELIC_ACCOUNT_ID, "0"}
-    NEW_RELIC_LICENSE_KEY: ${env:NEW_RELIC_LICENSE_KEY, "placeholder"}
+    NEW_RELIC_APP_NAME: newrelic-serverless-lambda-${sls:stage}
     NEW_RELIC_DISTRIBUTED_TRACING_ENABLED: true
+    NEW_RELIC_EXTENSION_LOGS_ENABLED: true
+    NEW_RELIC_EXTENSION_LOG_LEVEL: ${env:LOG_LEVEL, "INFO"}
     NEW_RELIC_EXTENSION_SEND_FUNCTION_LOGS: true
+    NEW_RELIC_EXTENSION_SEND_PLATFORM_LOGS: true
+    NEW_RELIC_LAMBDA_HANDLER: dist/handler.handler
+    NEW_RELIC_LICENSE_KEY: ${env:NEW_RELIC_LICENSE_KEY, "placeholder"}
 
 custom:
   serverless-offline:
