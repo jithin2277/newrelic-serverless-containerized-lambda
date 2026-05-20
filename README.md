@@ -1,19 +1,17 @@
 # newrelic-serverless-containerized-lambda
 
-Containerized AWS Lambda (Node.js / TypeScript) with **New Relic** instrumentation, deployed via **Serverless Framework v4** and **GitHub Actions**.
+Containerized AWS Lambda (Node.js / TypeScript) with **New Relic** instrumentation, deployed via **Serverless Framework v4**.
 
 ## Project Structure
 
 ```
 ├── src/
-│   └── handler.ts          # Lambda handler — logs "Hello World"
+│   └── handler.ts          # Lambda handler — returns Hello World JSON
 ├── Dockerfile               # Multi-stage build with New Relic layer
 ├── serverless.yml           # Serverless Framework v4 configuration
 ├── tsconfig.json            # TypeScript compiler options
-├── package.json             # Dependencies & scripts
-└── .github/
-    └── workflows/
-        └── deploy.yml       # CI/CD pipeline (GitHub Actions → AWS)
+├── .env.sample              # Sample environment variables
+└── package.json             # Dependencies & scripts
 ```
 
 ## How It Works
@@ -38,32 +36,34 @@ Containerized AWS Lambda (Node.js / TypeScript) with **New Relic** instrumentati
 # Install dependencies
 npm install
 
-# Compile TypeScript
-npm run build
+# Copy and fill in environment variables
+cp .env.sample .env.dev
 
-# Deploy to dev
-export SERVERLESS_LICENSE_KEY=<your-key>
-npx serverless deploy --stage dev
+# Run locally via serverless-offline (local stage)
+npm run start
+
+# Run locally via serverless-offline (dev stage, uses .env.dev)
+npm run start:dev
+
+# Test the Docker image locally (New Relic disabled)
+npm run invoke:docker
+# Then invoke: curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
 ```
 
-## GitHub Actions Deployment
+## Deployment
 
-The workflow at `.github/workflows/deploy.yml`:
+```bash
+# Deploy to dev
+npm run deploy:dev
+```
 
-- **Auto-deploys** to `dev` on every push to `main`.
-- **Manual dispatch** allows deploying to `dev`, `staging`, or `prod`.
+## Environment Variables
 
-### Required Secrets & Variables
-
-| Name | Type | Description |
-|---|---|---|
-| `SERVERLESS_LICENSE_KEY` | Secret | Serverless Framework v4 license key |
-| `AWS_DEPLOY_ROLE` | Variable | IAM role ARN for OIDC-based AWS authentication |
-
-### Optional Environment Variables
+Copy `.env.sample` to `.env.dev` and set the values before deploying.
 
 | Name | Default | Description |
 |---|---|---|
+| `SERVERLESS_LICENSE_KEY` | — | Serverless Framework v4 license key |
 | `NEW_RELIC_ACCOUNT_ID` | `0` | New Relic account ID |
 | `NEW_RELIC_LICENSE_KEY` | `placeholder` | New Relic ingest license key |
 | `LOG_LEVEL` | `info` | Application log level |
