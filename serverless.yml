@@ -1,5 +1,9 @@
 service: newrelic-serverless-lambda
 frameworkVersion: "~4.35.1"
+useDotenv: true
+
+plugins:
+  - serverless-offline
 
 package:
   individually: false
@@ -32,6 +36,11 @@ provider:
     NEW_RELIC_DISTRIBUTED_TRACING_ENABLED: true
     NEW_RELIC_EXTENSION_SEND_FUNCTION_LOGS: true
 
+custom:
+  serverless-offline:
+    httpPort: 4000
+    host: localhost
+
 functions:
   hello-world:
     image:
@@ -41,6 +50,6 @@ functions:
       entryPoint:
         - "/lambda-entrypoint.sh"
     events:
-      - httpApi:
-          path: /hello
+      - http:
+          path: hello
           method: get

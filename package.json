@@ -5,6 +5,10 @@
   "main": "src/handler.ts",
   "scripts": {
     "build": "tsc",
+    "start": "tsc && IS_OFFLINE=true sls offline --stage=local --reloadHandler",
+    "start:dev": "tsc && IS_OFFLINE=true sls offline --stage=dev --reloadHandler",
+    "invoke:docker": "docker build -t lambda-local . && docker run --rm -p 9000:8080 -e NEW_RELIC_ENABLED=false -e NEW_RELIC_LAMBDA_HANDLER=dist/handler.handler lambda-local",
+    "deploy:dev": "BUILDX_NO_DEFAULT_ATTESTATIONS=1 tsc && BUILDX_NO_DEFAULT_ATTESTATIONS=1 sls deploy --stage=dev",
     "lint": "eslint src/",
     "test": "echo \"No tests configured yet\" && exit 0"
   },
@@ -14,6 +18,9 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "^22.0.0",
+    "serverless": "^4.36.1",
+    "serverless-offline": "^14.6.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.0"
   },
   "engines": {
